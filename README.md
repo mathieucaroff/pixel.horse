@@ -43,7 +43,7 @@ npm install
 
 ## Setting up OAuth keys
 
-Get OAuth keys for authentication platform of your choice (github, google, twitter, facebook, vkontakte, patreon)
+Get OAuth keys for authentication platform of your choice (github, google, twitter, facebook, vkontakte, patreon, icynet)
 
 ### Github
 

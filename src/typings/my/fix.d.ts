@@ -44,6 +44,7 @@ declare module 'passport-tumblr' { export const Strategy: any; }
 declare module 'passport-deviantart' { export const Strategy: any; }
 declare module 'passport-steam' { export const Strategy: any; }
 declare module 'passport-patreon' { export const Strategy: any; }
+declare module 'passport-icynet' { export const Strategy: any; }
 
 declare module 'timsort' {
 	export function sort<T>(array: T[], compare: (a: T, b: T) => number): void;

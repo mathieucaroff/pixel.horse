@@ -9,6 +9,7 @@ import { Strategy as GithubStrategy } from 'passport-github2';
 import { Strategy as VKontakteStrategy } from 'passport-vkontakte';
 import { Strategy as PatreonStrategy } from 'passport-patreon';
 import { Strategy as DiscordStrategy } from 'passport-discord';
+import { Strategy as IcyNetworkStrategy } from 'passport-icynet';
 import { Profile } from '../common/interfaces';
 import { PATREON_COLOR } from '../common/colors';
 import { colorToCSS } from '../common/color';
@@ -23,6 +24,7 @@ export interface OAuthProfile {
 	username?: string;
 	discriminator?: string; // discord
 	displayName?: string;
+	display_name?: string;
 	email?: string; // discord
 	emails?: { value: string; }[];
 	provider: string;
@@ -96,6 +98,12 @@ const providerList: OAuthProviderInfo[] = [
 		color: '#7289DA',
 		strategy: DiscordStrategy,
 	},
+	{
+		id: 'icynet',
+		name: 'Icy Network',
+		color: '#6FEFFF',
+		strategy: IcyNetworkStrategy,
+	},
 ];
 
 providerList.forEach(p => p.auth = config.oauth[p.id]);
@@ -110,7 +118,7 @@ export function getProfileUrl(profile: OAuthProfile): string | undefined {
 		return `http://${profile.username}.tumblr.com/`;
 	} else if (profile.provider === 'facebook') {
 		return `http://www.facebook.com/${profile.id}`;
-	} else if (profile.provider === 'discord') {
+	} else if (profile.provider === 'discord' || profile.provider === 'icynet') {
 		return undefined;
 	} else if (profile._json.attributes && profile._json.attributes.url) { // patreon
 		return profile._json.attributes.url;
@@ -120,7 +128,7 @@ export function getProfileUrl(profile: OAuthProfile): string | undefined {
 }
 
 export function getProfileEmails(profile: OAuthProfile): string[] {
-	if (profile.provider === 'discord') {
+	if (profile.provider === 'discord' || profile.provider === 'icynet') {
 		return [profile.email as string];
 	} else if (profile.emails && profile.emails.length) {
 		return profile.emails.map(e => e.value);
@@ -138,7 +146,7 @@ export function getProfileUsername(profile: OAuthProfile): string | undefined {
 
 export function getProfileName(profile: OAuthProfile): string | undefined {
 	if (profile.provider === 'discord') return `${profile.username}#${profile.discriminator}`;
-	return profile.displayName || profile.username || getProfileNameInternal(profile.name);
+	return profile.displayName || profile.display_name || profile.username || getProfileNameInternal(profile.name);
 }
 
 function getProfileNameInternal(name: OAuthProfileName | undefined): string | undefined {
