@@ -29,16 +29,38 @@ export function setupCamera(camera: Camera, x: number, y: number, width: number,
 }
 
 export function updateCamera(camera: Camera, player: Point, map: Size) {
+	// camera.x and camera.y are the coordinate of the *top left corner*
+	// of the camera
+
+	// ptxel:
+	// The concept of a pixel in pixel.horse graphics
+	// -- same as a screen pixel when the zoom is 1
+
 	const cameraWith = camera.w;
 	const cameraHeight = camera.h;
 	const cameraHeightShifted = Math.ceil(camera.h - camera.offset);
 
+	// (A)
+	// player.x / y and map.width / height are counted in tiles rather
+	// than ptxels, so this is a conversion step from tilecount to pixel
+	// location
 	const playerX = toScreenX(player.x);
 	const playerY = toScreenY(player.y);
 
 	const mapWidth = toScreenX(map.width);
 	const mapHeight = toScreenY(map.height);
 
+	// (B)
+	// The below block is about dealing with small maps. In small maps,
+	// we want the visible part to be centered (useful cases)
+	// In **basic** cases, minX / minY will be 0
+	// and maxX / maxY will be `mapSize - cameraSize`
+	// (It just prevents the camera from pocking out in the bottom right
+	// corner of the map)
+	// In **useful** cases, we'll have minX = maxX < 0 / minY = maxY < 0
+	// Technically, it centers the top left corner of the map inside all
+	// the empty space that could be found to the top and the left of
+	// the map, if the map was placed to the bottom right of the screen.
 	const minX = Math.min(0, (mapWidth - cameraWith) / 2);
 	const minY = Math.min(0, (mapHeight - cameraHeight) / 2);
 	const minYShifted = Math.min(0, (mapHeight - cameraHeightShifted) / 2);
@@ -46,14 +68,24 @@ export function updateCamera(camera: Camera, player: Point, map: Size) {
 	const maxY = Math.max(mapHeight - cameraHeight, minY);
 	const maxYShifted = Math.max(mapHeight - cameraHeightShifted, minY);
 
+	// (C)
+	// hSpace / vSpace are the room at the center of the camera where
+	// the creature can move without having the camera follow them.
 	const hSpace = Math.floor(cameraWith * cameraPadding);
 	const vSpace = Math.floor(cameraHeight * cameraPadding);
 	const vSpaceShifted = Math.floor(cameraHeightShifted * cameraPadding);
 
+	// (D)
+	// hPad / vPad are the sizes of the bands to the sides of that
+	// central room
 	const hPad = (cameraWith - hSpace) / 2;
 	const vPad = (cameraHeight - vSpace) / 2;
 	const vPadShifted = (cameraHeightShifted - vSpaceShifted) / 2;
 
+	// (E)
+	// The below block actually computes the locations of these bands,
+	// in terms of the X/Y coordinates of the camera. If the map is too
+	// small, minX/Y / maxX/Y kick in and just center the map.
 	const minCamX = clamp(playerX - (hSpace + hPad), minX, maxX);
 	const maxCamX = clamp(playerX - hPad, minX, maxX);
 	const minCamY = clamp(playerY - (vSpace + vPad) - characterHeight, minY, maxY);
@@ -61,10 +93,19 @@ export function updateCamera(camera: Camera, player: Point, map: Size) {
 	const minCamYShifted = clamp(playerY - (vSpaceShifted + vPadShifted) - characterHeight, minYShifted, maxYShifted);
 	const maxCamYShifted = clamp(playerY - vPadShifted - characterHeight, minYShifted, maxYShifted);
 
+	// (F)
+	// Finally, we need to move the camera only when the creature is
+	// pressing against one of the earlier defined sides
 	camera.x = Math.floor(clamp(camera.x, minCamX, maxCamX));
 	camera.y = Math.floor(clamp(camera.y, minCamY, maxCamY));
 	camera.shiftTarget = Math.floor(clamp(camera.shiftTarget, minCamYShifted, maxCamYShifted));
 	camera.actualY = calculateCameraY(camera);
+
+	// Note:
+	// The logic for computing the camera position does not need steps
+	// (B), (C) and (D) to be run each time. These must be recomputed
+	// only when the camera is changed. Only (A), (E) and (F) depend on
+	// the creature position
 }
 
 export function centerCameraOn(camera: Camera, point: Point) {
