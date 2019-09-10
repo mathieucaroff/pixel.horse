@@ -140,6 +140,7 @@ Add `config.json` file in root directory with following content. You can use `co
 ```javascript
 {
   "title": "Pony Town",
+  "discordLink": "https://discordapp.com/invite/<invite_code>", // optional
   "twitterLink": "https://twitter.com/<twitter_name>", // optional
   "contactEmail": "<your_contact_email>",
   "port": 8090,
@@ -181,15 +182,30 @@ Add `config.json` file in root directory with following content. You can use `co
 }
 ```
 
+### NOTE!
+
+You **MUST** provide **unique**, **random** values for the `secret` and `token` fields of your config. It is **extremely dangerous** to leave these as default, as these values serve as authentication tokens for internal APIs and session cookies.
+
+To generate new values for these parameters, you can use the following command:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
+```
+
 ## Running
 
 ### Your first build
 
-pixel.horse has modified the Pony Town archive such that compiled game assets are no longer included. To compile the game assets for the first time, you can either use a development build with the `--sprites` flag (see [Running in development](#running-in-development)), or use the following commands to build and start a production instance with compiled sprites:
+pixel.horse has modified the Pony Town archive such that compiled game assets are no longer included. To compile the game assets for the first time, you must use the following command, which will generate the necessary spritesheets and corresponding data.
+
+```bash
+gulp sprites
+```
+
+If you would like to run a full production build after building spritesheets, you can use:
 
 ```bash
 npm run build-sprites
-npm start
 ```
 
 ### Production environment
@@ -272,3 +288,13 @@ gulp dev --coverage # run with tests and code coverage
 
 - `src/ts/server/start.ts:35` - adding custom map to the world
 - `src/ts/server/map/customMap.ts` - commented introduction to customizing maps
+
+## Have git ignore changes to `sprites.ts`, eventhough it's already in the index
+
+Due to an issue with the build system, an old copy of `src/ts/generated/sprites.ts` is shipped with this repository. In order to prevent Git from seeing changes to this file from local builds and warning you about them when changing branches or pulling new changes, you can use the following command:
+
+```bash
+git update-index --assume-unchanged src/ts/generated/sprites.ts
+```
+
+Read more about it [here](https://stackoverflow.com/questions/1139762/ignore-files-that-have-already-been-committed-to-a-git-repository).
