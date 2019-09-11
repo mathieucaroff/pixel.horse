@@ -927,7 +927,7 @@ export class PonyTownGame implements Game {
 			const hover = screenToWorld(camera, cursor);
 
 			this.panning =
-				this.input.isPressed(Key.SHIFT) &&
+				this.input.isPressed(Key.CTRL) &&
 				this.input.isPressed(Key.MOUSE_BUTTON1) ?
 				screenToPanning(camera, cursor) : undefined;
 			updateCamera(camera, player, this.map, this.panning);
