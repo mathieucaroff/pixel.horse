@@ -2,7 +2,7 @@ import '../lib';
 import { expect } from 'chai';
 import {
 	updateCamera, centerCameraOn, isWorldPointVisible, isEntityVisible, isAreaVisible,
-	isRectVisible, screenToWorld, worldToScreen, createCamera
+	isRectVisible, screenToWorld, worldToScreen, createCamera, screenToPanning
 } from '../../common/camera';
 import { rect } from '../../common/rect';
 import { entity } from '../mocks';
@@ -80,6 +80,29 @@ describe('Camera', () => {
 
 			expect(camera.x).equal(toScreenX(-25), 'x');
 			expect(camera.y).equal(toScreenY(-25), 'y');
+		});
+
+		it('takes the panning argument into account, when passed', () => {
+			const camera = {
+				...createCamera(),
+				w: toScreenX(100),
+				h: toScreenX(100),
+			};
+
+			const player = { x: 50, y: 50 };
+
+			updateCamera(camera, player, { width: 1000, height: 1000 }, { x: 0, y: 0});
+
+			expect(camera.x).equal(player.x, 'x');
+			expect(camera.y).equal(player.y, 'y');
+
+			const x = 40;
+			const y = 20;
+
+			updateCamera(camera, player, { width: 1000, height: 1000 }, { x, y });
+
+			expect(camera.x).equal(player.x + x, 'x');
+			expect(camera.y).equal(player.y + y, 'y');
 		});
 	});
 
@@ -167,6 +190,34 @@ describe('Camera', () => {
 			camera.actualY = camera.y = 24;
 
 			expect(worldToScreen(camera, { x: 3, y: 3 })).eql({ x: 64, y: 48 });
+		});
+	});
+
+	describe('screenToPanning()', () => {
+		it('maps the center of the screen to the zero padding', () => {
+			const w = 200;
+			const h = 100;
+
+			const camera = {
+				...createCamera(),
+				w,
+				h
+			};
+
+			expect(screenToPanning(camera, { x: w / 2, y: h / 2 })).eql({ x: 0, y: 0 });
+		});
+
+		it('maps the top left of the screen to panning half a screen up left', () => {
+			const w = 200;
+			const h = 100;
+
+			const camera = {
+				...createCamera(),
+				w,
+				h
+			};
+
+			expect(screenToPanning(camera, { x: 0, y: 0 })).eql({ x: -camera.w / 2, y: -camera.h / 2 });
 		});
 	});
 });

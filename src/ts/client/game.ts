@@ -5,7 +5,8 @@ import {
 	EntityState, Pony, Notification, TileType, Action, IServerActions, Season, WorldState, Holiday,
 	TileSets, ChatMessage, PartyInfo, Entity, DrawOptions, Engine, defaultDrawOptions, PonyStateFlags,
 	DoAction, ChatType, WorldStateFlags, DebugFlags, MessageType, AccountSettings, Matrix4,
-	FakeEntity, SelectFlags, WorldMap, MapType, MapFlags, EntityFlags, houseTiles, isValidTile
+	FakeEntity, SelectFlags, WorldMap, MapType, MapFlags, EntityFlags, houseTiles, isValidTile,
+	Point
 } from '../common/interfaces';
 import {
 	clamp, lengthOfXY, setFlag, hasFlag, boundsIntersect, point, toInt, lerpColor, distanceXY
@@ -20,7 +21,7 @@ import {
 	getMapHeightAt, updateEntitiesWithNames, updateEntitiesCoverLifted, getTile,
 	pickEntities, updateEntitiesTriggers, getElevation, setElevation, createWorldMap
 } from '../common/worldMap';
-import { updateCamera, centerCameraOn, screenToWorld, createCamera } from '../common/camera';
+import { updateCamera, centerCameraOn, screenToWorld, createCamera, screenToPanning } from '../common/camera';
 import { WHITE, BLACK, SHADOW_COLOR, getTileColor, RED, CAVE_LIGHT, CAVE_SHADOW } from '../common/colors';
 import { formatHourMinutes, getLightColor, getShadowColor, createLightData } from '../common/timeUtils';
 import { toggleWalls } from '../common/mixins';
@@ -264,6 +265,7 @@ export class PonyTownGame implements Game {
 	private element?: HTMLElement;
 	private showWallPlaceholder = false;
 	private highlightEntity?: Entity;
+	private panning?: Point;
 	placeEntity = 0;
 	placeTile = 0;
 	constructor(
@@ -920,10 +922,15 @@ export class PonyTownGame implements Game {
 				this.rightOverride = right;
 			}
 
-			updateCamera(camera, player, this.map);
-
 			const scale = this.getPixelScale();
-			const hover = screenToWorld(camera, point(input.pointerX / scale, input.pointerY / scale));
+			const cursor = point(input.pointerX / scale, input.pointerY / scale);
+			const hover = screenToWorld(camera, cursor);
+
+			this.panning =
+				this.input.isPressed(Key.SHIFT) &&
+				this.input.isPressed(Key.MOUSE_BUTTON1) ?
+				screenToPanning(camera, cursor) : undefined;
+			updateCamera(camera, player, this.map, this.panning);
 
 			if (input.usingTouch && !input.wasPressed(Key.TOUCH_CLICK) && !input.isPressed(Key.TOUCH)) {
 				hover.x = -1;
@@ -955,7 +962,7 @@ export class PonyTownGame implements Game {
 					}
 				}
 
-				if (input.wasPressed(Key.MOUSE_BUTTON1) || input.wasPressed(Key.TOUCH_CLICK)) {
+				if ((input.wasPressed(Key.MOUSE_BUTTON1) || input.wasPressed(Key.TOUCH_CLICK)) && !this.panning) {
 					const pickedEntities = pickEntities(this.map, hover, shift, this.mod);
 					const pickedEntity = pickedEntities[(pickedEntities.indexOf(this.selected!) + 1) % pickedEntities.length];
 					const holdingRemoveTool = player.hold === removeEntitiesTool.type;
@@ -1068,7 +1075,7 @@ export class PonyTownGame implements Game {
 		}
 
 		if (player) {
-			updateCamera(camera, player, this.map);
+			updateCamera(camera, player, this.map, this.panning);
 		}
 
 		if (this.resizedCamera) {
