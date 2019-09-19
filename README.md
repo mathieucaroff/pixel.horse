@@ -1,11 +1,13 @@
 # pixel.horse
 
-A fork of Pony Town, a game of ponies building a town.
+A [Pony Town](https://pony.town) custom server
 
-## Patreon Warning
+## Licensing
 
-Code relating to Patreon syncing has been removed from the public pixel.horse codebase.
-You **MUST** contact the Pony Town Team before opening a Patreon based off the Pony Town Custom Server source code. Not doing so is a violation of the [CC-BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) license on to the art and music assets supplied with the game. Please submit a request for approval to **ponytownhelp@gmail.com**.
+Pony Town's code is released to public domain. The art and music assets are released under the CC BY-NC 4.0 non-commercial license.
+The assets cannot be used for commercial purposes in any way including crowdfunding such as Patreon or PayPal donations without permission.
+See `LICENSE_CODE.txt`, `LICENSE_ART.txt` and `LICENSE_MUSIC.txt` files for definitions.
+To discuss licensing, contact `ponytownhelp@gmail.com`.
 
 ## Prerequisites
 
@@ -48,7 +50,7 @@ npm install
 
 ## Setting up OAuth keys
 
-Get OAuth keys for authentication platform of your choice (github, google, twitter, facebook, vkontakte, patreon, icynet)
+Get OAuth keys for authentication platform of your choice (github, google, twitter, facebook, vkontakte, icynet)
 
 ### Github
 
@@ -152,9 +154,10 @@ Add `config.json` file in root directory with following content. You can use `co
   "adminPort": 8091,
   "host": "http://localhost:8090/",
   "local": "localhost:8090",
-	"adminLocal": "localhost:8091",
-  "secret": "<some_random_string_here>",
-  "token": "<some_random_string_here>",
+  "adminLocal": "localhost:8091",
+  "proxy": false, // set to true or to the ip of your proxy server if hosting pony town behind a proxy like nginx
+  "secret": "<some_random_string_here>", // use a long and random string here, it's crucial for your security that nobody else knows this value
+  "token": "<some_other_random_string_here>", // use a long and random string here, it's crucial for your security that nobody else knows this value
   "db": "mongodb://<username>:<password>@localhost:27017/<database_name>", // use values you used when setting up database
   "analytics": { // optional google analytics
     "trackingID": "<tracking_id>"
@@ -201,40 +204,36 @@ node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
 
 ### Your first build
 
-pixel.horse has modified the Pony Town archive such that compiled game assets are no longer included. To compile the game assets for the first time, you must use the following command, which will generate the necessary spritesheets and corresponding data.
+pixel.horse has modified the Pony Town archive such that compiled game assets are no longer included. To compile the game assets for the first time, you must use the following command, which will generate the necessary spritesheets and corresponding data **and** run a full production build of the site:
+
+```bash
+npm run build-sprites
+npm start
+```
+
+**If you want to build sprites __only__** (useful if you want to develop the project before deployment), you can use:
 
 ```bash
 gulp sprites
 ```
 
-If you would like to run a full production build after building spritesheets, you can use:
-
-```bash
-npm run build-sprites
-```
-
 ### Production environment
+
+After your initial build (see above), you can use the following commands to generate a fresh production build of the site.
 
 ```bash
 npm run build
 npm start
 ```
 
-### Adding/removing roles
+**This will not update spritesheets**; for that, you must use `npm run build-sprites` as discussed previously, or run a [development build](#running-in-development) with the `--sprites` flag.
+
+### Beta environment (with dev tools and in-development features)
 
 ```bash
-node cli.js --addrole <account_id> <role>   # roles: superadmin, admin, mod, dev
-node cli.js --removerole <account_id> <role>
+npm run build-beta
+node pony-town.js --login --admin --game --tools --beta
 ```
-
-To setup superadmin role use following command
-
-```bash
-node cli.js --addrole <your_account_id> superadmin
-```
-
-Admin panel is accessible at `<base_url>/admin/` (requires admin or superadmin role to access)
-Tools are accessible at `<base_url>/tools/` (only available in dev mode or when started with --tools flag)
 
 ### Starting as multiple processes
 
@@ -253,14 +252,18 @@ It is recommended to run processes with larger memory pool for large user bases 
 node --max_old_space_size=8192 pony-town.js --game main
 ```
 
-### Beta environment (with dev tools and in-development features)
+### Recommended production server update procedure
 
-```bash
-npm run build-beta
-node pony-town.js --login --admin --game --tools --beta
-```
+1. Build everything
+2. Issue a restart notice (from admin panel `<base_url>/admin/`)
+3. Wait around 30s
+4. Issue shutdown servers command (from admin panel `<base_url>/admin/`)
+5. Wait for the user count to become 0
+6. Restart the server
 
-### Running in development
+You do not need to shut down the server to build.
+
+### Running in development (compiles faster and has extra tools)
 
 ```bash
 npm run ts-watch    # terminal 1
@@ -275,9 +278,28 @@ gulp dev --test     # run with tests
 gulp dev --coverage # run with tests and code coverage
 ```
 
+### Adding/removing roles
+
+```bash
+node cli.js --addrole <account_id> <role>   # roles: superadmin, admin, mod, dev
+node cli.js --removerole <account_id> <role>
+```
+
+To setup superadmin role use following command
+
+```bash
+node cli.js --addrole <your_account_id> superadmin
+```
+
+### Additional tools
+
+Admin panel is accessible at `<base_url>/admin/` (requires admin or superadmin role to access)
+Tools are accessible at `<base_url>/tools/` (only available in dev mode or when started with --tools flag)
+
 ## Customization
 
 - `package.json` - settings for title and description of the website
+- `changelog.md` - your public updates
 - `assets/images` - logos and team avatars
 - `public/images` - additional logos
 - `public` - privacy policy and terms of service
@@ -291,10 +313,13 @@ gulp dev --coverage # run with tests and code coverage
 
 ### Custom map introduction
 
+- `src/ts/common/entities.ts` - adding entities
 - `src/ts/server/start.ts:35` - adding custom map to the world
 - `src/ts/server/map/customMap.ts` - commented introduction to customizing maps
 
-## Have git ignore changes to `sprites.ts`, eventhough it's already in the index
+## Repo quirks and notes
+
+### `sprites.ts`
 
 Due to an issue with the build system, an old copy of `src/ts/generated/sprites.ts` is shipped with this repository. In order to prevent Git from seeing changes to this file from local builds and warning you about them when changing branches or pulling new changes, you can use the following command:
 
@@ -303,3 +328,33 @@ git update-index --assume-unchanged src/ts/generated/sprites.ts
 ```
 
 Read more about it [here](https://stackoverflow.com/questions/1139762/ignore-files-that-have-already-been-committed-to-a-git-repository).
+
+### Adding assets
+
+1. Edit sprites (`assets-source` folder)
+2. Compile sprites (`gulp dev --sprites`)
+3. Add relevant code
+4. (In some cases) compile sprites again
+
+## Changelog
+
+### Pony.Town v0.53.2
+- Added changes from Pony.Town update v0.53.2 (https://pony.town/about)
+- Updated readme with further instructions on updating server and adding assets
+- Updated pony compression to handle up to 63 items per slot instead of 31
+- Added Visit PT button
+- Added disclaimer notice to Home and About
+- Updated licenses
+- Removed some unused assets
+- Updated Contributor list
+- Removed "Pony Town" from public pages
+
+### Pony.Town v0.53.1
+- Added option to import and export settings and actions on action bar
+- Added different colors of cushions for house customization
+- Fixed scroll wheel not working on Firefox
+- Fixed not being able to place items behind interactive items like boxes or barrels
+- Fixed issue with crystal light
+
+### Initial release - Pony.Town v0.53.0
+- Added custom servers
