@@ -29,6 +29,8 @@ export interface AppConfig {
 		trackingID: string;
 	};
 	assetsPath?: string;
+	season?: string;
+	holiday?: string;
 	oauth: { [key: string]: any };
 	servers: ServerConfig[];
 	facebookAppId?: string;
@@ -57,6 +59,11 @@ export interface AppArgs {
 export const args = argv as AppArgs;
 export const { version, description }: AppPackage = require('../../../package.json');
 export const config: AppConfig = require('../../../config.json');
+
+// append / to host if the server op forgot it
+if (!config.host.endsWith('/')) {
+	config.host += '/';
+}
 
 const INSECURE_RANDOM_VALUES = [
 	'gfhfdshtrdhgedryhe4t3y5uwjthr',
