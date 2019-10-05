@@ -148,6 +148,7 @@ Add `config.json` file in root directory with following content. You can use `co
 {
   "title": "Pony Town",
   "discordLink": "https://discordapp.com/invite/<invite_code>", // optional
+  "contactDiscord": "your_contact_discord#0000", // optional
   "twitterLink": "https://twitter.com/<twitter_name>", // optional
   "contactEmail": "<your_contact_email>",
   "port": 8090,
@@ -341,6 +342,13 @@ Read more about it [here](https://stackoverflow.com/questions/1139762/ignore-fil
 4. (In some cases) compile sprites again
 
 ## Changelog
+
+#### Pony.Town v0.55.2
+- Optimized server performance
+- Fixed various animation issues
+- Fixed issues with kiss animation while turning head
+- Added additional server performance stats to the admin panel
+- Changed the button on admin panel that removes old events from 10min to 1day
 
 ### Pony.Town v0.55.0
 - Added Kiss action
