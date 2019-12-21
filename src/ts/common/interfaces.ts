@@ -65,6 +65,7 @@ export interface Notification {
 	note?: string;
 	flags: NotificationFlags;
 	pony: Pony;
+	entityId?: number;
 	open: boolean;
 	fresh: boolean;
 }

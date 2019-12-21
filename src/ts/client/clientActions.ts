@@ -203,7 +203,7 @@ export class ClientActions implements SocketClient {
 		const filteredName = filterEntityName(this.game, name, hasFlag(flags, NotificationFlags.NameBad));
 		message = message.replace(/#NAME#/g, nameToHTML(filteredName || ''));
 
-		this.apply(() => addNotification(this.game, { id, message, note, pony, flags, open: false, fresh: true }));
+		this.apply(() => addNotification(this.game, { id, message, note, pony, entityId, flags, open: false, fresh: true }));
 	}
 	@Method({ binary: [BinNotificationId] })
 	removeNotification(id: number) {

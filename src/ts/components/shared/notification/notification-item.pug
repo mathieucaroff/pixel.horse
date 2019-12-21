@@ -13,6 +13,8 @@ ng-template(#popover)
 			button.btn.btn-xs.btn-success(*ngIf="acceptButton" (click)="accept()") accept
 			button.btn.btn-xs.btn-danger(*ngIf="noButton" (click)="reject()") no
 			button.btn.btn-xs.btn-danger(*ngIf="rejectButton" (click)="reject()") reject
+			button.btn.btn-xs.btn-info(*ngIf="notification.entityId" (click)="who()" style="width:auto")
+				fa-icon([icon]="markerIcon")
 
 .notification.cursor-pointer(
 	[popover]="popover" [isOpen]="isOpen" (contextmenu)="reject(); $event.preventDefault()"

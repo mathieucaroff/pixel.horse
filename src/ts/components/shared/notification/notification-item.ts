@@ -1,9 +1,10 @@
 import { Component, Input, OnDestroy } from '@angular/core';
-import { PlayerAction, Notification, NotificationFlags, EntityPlayerState } from '../../../common/interfaces';
+import { PlayerAction, Notification, NotificationFlags, EntityPlayerState, Entity, Pony, FakeEntity } from '../../../common/interfaces';
 import { PonyTownGame } from '../../../client/game';
 import { hasFlag, setFlag } from '../../../common/utils';
-import { faBan } from '../../../client/icons';
+import { faBan, faMapMarkerAlt } from '../../../client/icons';
 import { getPaletteInfo } from '../../../common/pony';
+import { PONY_TYPE } from '../../../common/constants';
 
 @Component({
 	selector: 'notification-item',
@@ -12,6 +13,7 @@ import { getPaletteInfo } from '../../../common/pony';
 })
 export class NotificationItem implements OnDestroy {
 	readonly banIcon = faBan;
+	readonly markerIcon = faMapMarkerAlt;
 	@Input() notification!: Notification;
 	constructor(private game: PonyTownGame) {
 	}
@@ -54,6 +56,11 @@ export class NotificationItem implements OnDestroy {
 	}
 	reject() {
 		this.game.send(server => server.rejectNotification(this.notification.id));
+	}
+	who() {
+		let pony: Entity = this.notification.pony;
+		if (!pony.id) pony = { fake: true, type: PONY_TYPE, id: this.notification.entityId!, name: '' } as FakeEntity as any;
+		this.game.select(pony as Pony);
 	}
 	ignore() {
 		this.reject();

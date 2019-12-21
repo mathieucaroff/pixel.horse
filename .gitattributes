@@ -1,3 +1,7 @@
+# Sets the default line ending for files git recognizes as text files to lf
+* text=auto eol=lf
+
+# Git LFS
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.jpeg filter=lfs diff=lfs merge=lfs -text
